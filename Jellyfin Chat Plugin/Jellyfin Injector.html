@@ -1,0 +1,11 @@
+public IEnumerable<PluginPageInfo> GetPages()
+{
+    return new[]
+    {
+        new PluginPageInfo
+        {
+            Name = "chat",
+            EmbeddedResourcePath = "JellyfinLocalChat.web.index.html"
+        }
+    };
+}

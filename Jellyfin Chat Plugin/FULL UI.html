@@ -1,0 +1,74 @@
+<div id="chatApp">
+  <div id="sidebar">
+    <button id="toggleUsers">👥</button>
+    <div id="userList"></div>
+  </div>
+
+  <div id="main">
+    <div id="messages"></div>
+    <div id="typing"></div>
+    <input id="msg" placeholder="Type..." />
+  </div>
+</div>
+
+<script>
+const ws = new WebSocket(`ws://${location.host}/LocalChat/ws`);
+
+const messagesDiv = document.getElementById("messages");
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  if (data.type === "history") {
+    data.messages.forEach(addMessage);
+  }
+
+  if (data.type === "message") {
+    addMessage(data);
+  }
+
+  if (data.type === "delete") {
+    const el = document.getElementById(data.id);
+    if (el) el.innerHTML = "(deleted message)";
+  }
+
+  if (data.type === "users") {
+    document.getElementById("userList").innerHTML =
+      data.users.map(u => `<p>${u}</p>`).join("");
+  }
+
+  if (data.type === "typing") {
+    document.getElementById("typing").innerText =
+      data.user + " is typing...";
+  }
+};
+
+function addMessage(m) {
+  const el = document.createElement("div");
+  el.id = m.id;
+
+  el.innerHTML = `<b>${m.username || m.user}:</b> ${m.message || m.text}`;
+
+  el.oncontextmenu = (e) => {
+    e.preventDefault();
+    ws.send(JSON.stringify({ type: "delete", id: m.id }));
+  };
+
+  messagesDiv.appendChild(el);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+document.getElementById("msg").addEventListener("input", () => {
+  ws.send(JSON.stringify({ type: "typing" }));
+});
+
+document.getElementById("msg").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    ws.send(JSON.stringify({
+      type: "message",
+      text: e.target.value
+    }));
+    e.target.value = "";
+  }
+});
+</script>
