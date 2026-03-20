@@ -7,10 +7,23 @@ Rule Set:
 
 -messages are never exposed publicly
 
--
-
 -one internal room like local
 
 -every message is stored locally in the plugin database
 
--no communication with any outside server or service
+-no communication with an another outside server or service
+
+Features:
+
+-visible typing indicators
+
+-right click instant delete message and replaces message with 'deleted message'
+
+-live online user list
+
+-toggle icon
+
+-stored history
+
+-runs in player and disappears with player controls
+
