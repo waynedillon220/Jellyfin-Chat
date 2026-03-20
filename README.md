@@ -27,3 +27,6 @@ Features:
 
 -runs in player and disappears with player controls
 
+-SOON-
+
+-emoji support
