@@ -1,11 +1,41 @@
-public IEnumerable<PluginPageInfo> GetPages()
+using MediaBrowser.Common.Plugins;
+using MediaBrowser.Controller.Plugins;
+using MediaBrowser.Model.Plugins;
+using System;
+using System.Collections.Generic;
+
+namespace JellyfinLocalChat
 {
-    return new[]
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
-        new PluginPageInfo
+        public override string Name => "Local Chat";
+        public override Guid Id => Guid.Parse("b3d8b5a2-7c2c-4a5a-9d52-111111111111");
+
+        public Plugin(IApplicationPaths applicationPaths) : base(applicationPaths)
         {
-            Name = "chat-overlay.js",
-            EmbeddedResourcePath = "JellyfinLocalChat.web.chat-overlay.js"
+            Instance = this;
         }
-    };
+
+        public static Plugin Instance { get; private set; }
+
+        // 👇 THIS injects script into Jellyfin automatically
+        public IEnumerable<PluginPageInfo> GetPages()
+        {
+            return new[]
+            {
+                new PluginPageInfo
+                {
+                    Name = "chat-inject",
+                    EmbeddedResourcePath = "JellyfinLocalChat.web.inject.html"
+                },
+                new PluginPageInfo
+                {
+                    Name = "chat-overlay.js",
+                    EmbeddedResourcePath = "JellyfinLocalChat.web.chat-overlay.js"
+                }
+            };
+        }
+    }
+
+    public class PluginConfiguration : BasePluginConfiguration { }
 }
