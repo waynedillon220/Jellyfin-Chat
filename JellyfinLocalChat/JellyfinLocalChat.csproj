@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="web\chat-overlay.js" />
+    <EmbeddedResource Include="web\inject.html" />
   </ItemGroup>
 
 </Project>
