@@ -4,13 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!-- REQUIRED Jellyfin packages -->
-    <PackageReference Include="Jellyfin.Controller" Version="10.9.0" />
-    <PackageReference Include="Jellyfin.Model" Version="10.9.0" />
-    <PackageReference Include="Jellyfin.Api" Version="10.9.0" />
-    <PackageReference Include="MediaBrowser.Common" Version="10.9.0" />
-  </ItemGroup>
+<ItemGroup>
+  <PackageReference Include="Jellyfin.Controller" Version="10.9.0" />
+  <PackageReference Include="Jellyfin.Model" Version="10.9.0" />
+</ItemGroup>
 
   <ItemGroup>
     <!-- Your UI files -->
