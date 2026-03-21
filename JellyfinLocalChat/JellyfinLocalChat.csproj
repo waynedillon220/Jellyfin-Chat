@@ -4,15 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
-<ItemGroup>
-  <PackageReference Include="Jellyfin.Controller" Version="10.9.0" />
-  <PackageReference Include="Jellyfin.Model" Version="10.9.0" />
-</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Controller" Version="10.9.0" />
+    <PackageReference Include="Jellyfin.Model" Version="10.9.0" />
+  </ItemGroup>
 
   <ItemGroup>
-    <!-- Your UI files -->
-    <EmbeddedResource Include="web\chat-overlay.js" />
-    <EmbeddedResource Include="web\inject.html" />
+    <EmbeddedResource Include="web/chat-overlay.js" />
+    <EmbeddedResource Include="web/inject.html" />
   </ItemGroup>
 
 </Project>
