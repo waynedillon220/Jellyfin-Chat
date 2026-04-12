@@ -3,3 +3,24 @@ obj/
 .vs/
 .idea/
 artifacts
+
+# Build outputs
+build/
+*.dll
+*.exe
+*.pdb
+
+# Distribution files
+JellyfinLocalChat.zip
+
+# IDE files
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

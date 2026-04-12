@@ -1,0 +1,61 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build plugin
+      run: |
+        dotnet build JellyfinLocalChat/JellyfinLocalChat.csproj -c Release -o "build/JellyfinLocalChat"
+
+    - name: Create plugin structure
+      run: |
+        mkdir -p build/plugins/JellyfinLocalChat
+        cp build/JellyfinLocalChat/JellyfinLocalChat.dll build/plugins/JellyfinLocalChat/
+
+    - name: Create ZIP
+      run: |
+        cd build
+        7z a -tzip ../JellyfinLocalChat.zip plugins/
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Automated release of Jellyfin Local Chat Plugin
+
+          ## Installation
+          1. Download `JellyfinLocalChat.zip`
+          2. Extract to your Jellyfin server's plugins directory
+          3. Restart Jellyfin server
+          4. Enable the plugin in Dashboard -> Plugins
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./JellyfinLocalChat.zip
+        asset_name: JellyfinLocalChat.zip
+        asset_content_type: application/zip
