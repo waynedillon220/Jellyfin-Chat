@@ -1,5 +1,5 @@
 using MediaBrowser.Controller.Net;
-using MediaBrowser.Model.Services;
+using ServiceStack;
 using System;
 using System.Net.WebSockets;
 using System.Text;
