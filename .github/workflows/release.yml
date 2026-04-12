@@ -29,8 +29,8 @@ jobs:
 
     - name: Create ZIP
       run: |
-        cd build
-        7z a -tzip ../JellyfinLocalChat.zip plugins/
+        cd build/plugins
+        7z a ../../JellyfinLocalChat.zip JellyfinLocalChat
 
     - name: Create Release
       uses: actions/create-release@v1

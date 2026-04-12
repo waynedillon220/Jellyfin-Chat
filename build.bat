@@ -16,7 +16,7 @@ REM Copy the DLL to the plugin directory
 copy "build/JellyfinLocalChat/JellyfinLocalChat.dll" "build/plugins/JellyfinLocalChat/"
 
 REM Create the ZIP file
-powershell "Compress-Archive -Path 'build/plugins' -DestinationPath 'JellyfinLocalChat.zip' -Force"
+powershell "Compress-Archive -Path 'build/plugins/JellyfinLocalChat' -DestinationPath 'JellyfinLocalChat.zip' -Force"
 
 echo Build complete! Plugin ZIP created: JellyfinLocalChat.zip
 echo.
