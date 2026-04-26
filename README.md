@@ -1,4 +1,4 @@
-# Jellyfin Local Chat Plugin
+# Jellyfin Local Chat Plugin WIP
 
 Lightweight local chatbox for Jellyfin where all logged-in users can communicate in real-time. All chats are stored locally on the Jellyfin server.
 
