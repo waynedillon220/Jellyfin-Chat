@@ -1,5 +1,6 @@
 using MediaBrowser.Controller.Net;
 using ServiceStack;
+using ServiceStack.Web;
 using System;
 using System.Net.WebSockets;
 using System.Text;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace JellyfinLocalChat
 {
-    [Route("/LocalChat/ws", "GET")]
+    [Route("/api/LocalChat/ws", "GET")]
     public class ChatWebSocket : IReturnVoid { }
 
     public class ChatWebSocketService : BaseApiService
