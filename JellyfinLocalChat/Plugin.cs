@@ -39,7 +39,7 @@ namespace JellyfinLocalChat
 
         public void RegisterServices(IServiceCollection services)
         {
-            services.AddSingleton<ChatService>();
+            services.AddSingleton<ChatService>(provider => new ChatService(ApplicationPaths.DataPath));
             services.AddScoped<ChatWebSocketService>();
         }
     }

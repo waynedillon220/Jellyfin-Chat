@@ -15,6 +15,9 @@ mkdir "build/plugins/JellyfinLocalChat"
 REM Copy the DLL to the plugin directory
 copy "build/JellyfinLocalChat/JellyfinLocalChat.dll" "build/plugins/JellyfinLocalChat/"
 
+REM Copy manifest.json to the plugin directory
+copy "manifest.json" "build/plugins/JellyfinLocalChat/"
+
 REM Create the ZIP file
 powershell "Compress-Archive -Path 'build/plugins/JellyfinLocalChat' -DestinationPath 'JellyfinLocalChat.zip' -Force"
 

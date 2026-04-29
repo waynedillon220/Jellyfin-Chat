@@ -56,7 +56,7 @@
     };
 
     // 🔌 WebSocket
-    const ws = new WebSocket(`ws://${location.host}/LocalChat/ws`);
+    const ws = new WebSocket(`ws://${location.host}/api/LocalChat/ws`);
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
