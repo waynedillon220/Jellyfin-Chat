@@ -1,8 +1,9 @@
 using MediaBrowser.Controller.Net;
-using ServiceStack;
-using ServiceStack.Web;
+using MediaBrowser.Controller.Net.WebSocketMessages;using MediaBrowser.Controller.Net.WebSocketMessages;using MediaBrowser.Model.Session;
+using Microsoft.AspNetCore.Http;
 using System;
-using System.Net.WebSockets;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -10,115 +11,137 @@ using System.Threading.Tasks;
 
 namespace JellyfinLocalChat
 {
-    [Route("/api/LocalChat/ws", "GET")]
-    public class ChatWebSocket : IReturnVoid { }
-
-    public class ChatWebSocketService : BaseApiService
+    public class ChatWebSocketListener : IWebSocketListener
     {
-        private static ChatService _chatService;
+        private readonly ChatService _chatService;
 
-        public ChatWebSocketService(ChatService chatService)
+        public ChatWebSocketListener(ChatService chatService)
         {
             _chatService = chatService;
         }
 
-        public async Task Get(ChatWebSocket request)
+        public async Task ProcessWebSocketConnectedAsync(
+            IWebSocketConnection connection, 
+            HttpContext httpContext)
         {
-            var socket = await Request.AcceptWebSocketAsync();
-            var user = RequestContext.User?.Name ?? "Unknown";
+            var username = connection.AuthorizationInfo?.User?.Username ?? "Unknown";
+            var userId = connection.AuthorizationInfo?.UserId ?? Guid.Empty;
 
             var client = new ClientConnection
             {
-                Username = user,
-                Socket = socket
+                Username = username,
+                UserId = userId,
+                Connection = connection
             };
 
             _chatService.Clients.Add(client);
-
-            // SEND HISTORY
+            
+            // Send chat history
             var history = _chatService.GetMessages();
-            await Send(socket, new { type = "history", messages = history });
+            var historyMessage = new OutboundWebSocketMessage<object>
+            {
+                MessageType = SessionMessageType.GeneralCommand,
+                Data = new { type = "history", messages = history }
+            };
+            await connection.SendAsync(historyMessage, CancellationToken.None);
 
             await BroadcastUsers();
 
-            var buffer = new byte[2048];
+            // Register message handler
+            connection.OnReceive = ProcessMessageAsync;
+        }
 
-            while (socket.State == WebSocketState.Open)
+        public async Task ProcessMessageAsync(WebSocketMessageInfo message)
+        {
+            if (message == null || string.IsNullOrEmpty(message.Data))
+                return;
+
+            var connection = message.Connection;
+            var username = connection.AuthorizationInfo?.User?.Username ?? "Unknown";
+
+            try
             {
-                var result = await socket.ReceiveAsync(
-                    new ArraySegment<byte>(buffer), CancellationToken.None);
-
-                var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                var doc = JsonDocument.Parse(json);
-
+                var doc = JsonDocument.Parse(message.Data);
                 var type = doc.RootElement.GetProperty("type").GetString();
 
                 if (type == "message")
                 {
                     var text = doc.RootElement.GetProperty("text").GetString();
-
-                    var msg = _chatService.AddMessage(user, text);
+                    var msg = _chatService.AddMessage(username, text);
 
                     await Broadcast(new
                     {
                         type = "message",
                         id = msg.Id,
-                        user = user,
+                        user = username,
                         text = msg.Message
                     });
                 }
 
                 if (type == "typing")
                 {
-                    _chatService.TypingUsers.Add(user);
-                    await Broadcast(new { type = "typing", user });
+                    _chatService.TypingUsers.Add(username);
+                    await Broadcast(new { type = "typing", user = username });
                 }
 
                 if (type == "stopTyping")
                 {
-                    _chatService.TypingUsers.Remove(user);
+                    _chatService.TypingUsers.Remove(username);
                 }
 
                 if (type == "delete")
                 {
                     var id = doc.RootElement.GetProperty("id").GetGuid();
                     _chatService.DeleteMessage(id);
-
                     await Broadcast(new { type = "delete", id });
                 }
             }
-
-            _chatService.Clients.Remove(client);
-            await BroadcastUsers();
+            catch (Exception ex)
+            {
+                // Log error if needed
+                System.Diagnostics.Debug.WriteLine($"Error processing WebSocket message: {ex.Message}");
+            }
         }
 
         private async Task Broadcast(object obj)
         {
-            var data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(obj));
-
-            foreach (var c in _chatService.Clients)
+            var message = new OutboundWebSocketMessage<object>
             {
-                if (c.Socket.State == WebSocketState.Open)
+                MessageType = SessionMessageType.GeneralCommand,
+                Data = obj
+            };
+            
+            var clientsToRemove = new List<ClientConnection>();
+            
+            foreach (var client in _chatService.Clients.ToList())
+            {
+                try
                 {
-                    await c.Socket.SendAsync(data,
-                        WebSocketMessageType.Text, true, CancellationToken.None);
+                    await client.Connection.SendAsync(message, CancellationToken.None);
+                }
+                catch
+                {
+                    clientsToRemove.Add(client);
                 }
             }
-        }
 
-        private async Task Send(WebSocket socket, object obj)
-        {
-            var data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(obj));
-            await socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
+            foreach (var client in clientsToRemove)
+            {
+                _chatService.Clients.Remove(client);
+            }
         }
 
         private async Task BroadcastUsers()
         {
-            await Broadcast(new
-            {
-                type = "users",
-                users = _chatService.GetOnlineUsers()
-            });
+            var users = _chatService.Clients.Select(c => new { c.Username, TypingUsers = _chatService.TypingUsers.ToList() });
+            await Broadcast(new { type = "users", users });
         }
+    }
+
+    // Simple message wrapper for SendAsync
+    public class WebSocketMessage<T>
+    {
+        public string MessageType { get; set; }
+        public T Data { get; set; }
     }
 }
